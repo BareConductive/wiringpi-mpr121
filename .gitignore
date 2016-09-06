@@ -1,0 +1,12 @@
+!*.*
+!/**/
+*
+*.o
+*.pyc
+*.so*
+.DS_Store
+._*
+Python/*.cxx
+Python/MPR121.py
+!Makefile
+!readme.md
