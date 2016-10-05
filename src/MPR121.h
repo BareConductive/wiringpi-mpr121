@@ -8,7 +8,8 @@
   Based on code by Jim Lindblom and plenty of inspiration from the Freescale
   Semiconductor datasheets and application notes.
 
-  Bare Conductive code written by Stefan Dzisiewski-Smith and Peter Krige.
+  Bare Conductive code written by Stefan Dzisiewski-Smith, Peter Krige and
+  Szymon Kaliski.
 
   This work is licensed under a Creative Commons Attribution-ShareAlike 3.0
   Unported License (CC BY-SA 3.0) http://creativecommons.org/licenses/by-sa/3.0/
@@ -168,6 +169,19 @@ enum mpr121_error_t
   NOT_INITED			// device has not been initialised
 };
 
+// sample intervals
+enum mpr121_sample_interval_t
+{
+  SAMPLE_INTERVAL_1MS = 0x00,
+  SAMPLE_INTERVAL_2MS = 0x01,
+  SAMPLE_INTERVAL_4MS = 0x02,
+  SAMPLE_INTERVAL_8MS = 0x03,
+  SAMPLE_INTERVAL_16MS = 0x04,
+  SAMPLE_INTERVAL_32MS = 0x05,
+  SAMPLE_INTERVAL_64MS = 0x06,
+  SAMPLE_INTERVAL_128MS = 0x07
+};
+
 class MPR121_t
 {
   public:
@@ -303,6 +317,10 @@ class MPR121_t
     // internally reduced to 4 bit) and broken on ELE9 and ELE10
     // see https://community.freescale.com/thread/305474
     void analogWrite(unsigned char electrode, unsigned char val);
+
+    // Sets the sample period of the MPR121 - the time between capacitive
+    // readings. Higher values consume less power, but are less responsive.
+    void setSamplePeriod(mpr121_sample_interval_t period);
 
     // functions / variables internal to the MPR121_t class - you cannot access these exter a ly
 

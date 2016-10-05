@@ -30,6 +30,7 @@
 %rename(digital_toggle) digitalToggle;
 %rename(digital_read) digitalRead;
 %rename(analog_write) analogWrite;
+%rename(_set_sample_period) setSamplePeriod; /* internal, we overwrite this ourselves to work around CPP enums */
 
 %{
   #include "../src/MPR121.h"
@@ -45,5 +46,21 @@
 %inline %{
   struct MPR121Error {
     enum { NO_ERROR, RETURN_TO_SENDER, ADDRESS_UNKNOWN, READBACK_FAIL, OVERCURRENT_FLAG, OUT_OF_RANGE, NOT_INITED };
+  };
+%}
+
+/* sample interval struct */
+%inline %{
+  struct MPR121SampleInterval {
+    enum {
+      SAMPLE_INTERVAL_1MS   = 0x00,
+      SAMPLE_INTERVAL_2MS   = 0x01,
+      SAMPLE_INTERVAL_4MS   = 0x02,
+      SAMPLE_INTERVAL_8MS   = 0x03,
+      SAMPLE_INTERVAL_16MS  = 0x04,
+      SAMPLE_INTERVAL_32MS  = 0x05,
+      SAMPLE_INTERVAL_64MS  = 0x06,
+      SAMPLE_INTERVAL_128MS = 0x07
+    };
   };
 %}
