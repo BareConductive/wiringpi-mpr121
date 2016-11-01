@@ -2,3 +2,5 @@
 ._*
 Python/*.cxx
 Python/MPR121.py
+*.so*
+*.o
