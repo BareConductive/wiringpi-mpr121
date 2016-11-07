@@ -34,7 +34,8 @@
 #
 #*******************************************************************************
 
-VERSION=0.1
+VERSION=0.2
+
 DESTDIR?=/usr
 PREFIX?=/local
 
@@ -78,7 +79,7 @@ $(STATIC):	$(OBJ)
 $(DYNAMIC):	$(OBJ)
 	$Q echo "[Link (Dynamic)]"
 	$Q $(CC) -shared -Wl,-soname,libMPR121.so -o libMPR121.so.$(VERSION) -lpthread $(OBJ)
-	$Q ln -sf libMPR121.so.$(VERSION)	libMPR121.so
+	$Q ln -rsf libMPR121.so.$(VERSION)	libMPR121.so
 
 .c.o:
 	$Q echo [Compile] $<
@@ -104,7 +105,7 @@ install:	$(DYNAMIC)
 	$Q echo "[Install Dynamic Lib]"
 	$Q install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
 	$Q install -m 0755 libMPR121.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libMPR121.so.$(VERSION)
-	$Q ln -sf $(DESTDIR)$(PREFIX)/lib/libMPR121.so.$(VERSION)	$(DESTDIR)/lib/libMPR121.so
+	$Q ln -rsf $(DESTDIR)$(PREFIX)/lib/libMPR121.so.$(VERSION)	$(DESTDIR)/lib/libMPR121.so
 	$Q $(LDCONFIG)
 
 .PHONY:	install-static
@@ -115,16 +116,6 @@ install-static:	$(STATIC)
 	$Q echo "[Install Static Lib]"
 	$Q install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
 	$Q install -m 0755 libMPR121.a					$(DESTDIR)$(PREFIX)/lib
-
-.PHONY:	install-deb
-install-deb:	$(DYNAMIC)
-	$Q echo "[Install Headers: deb]"
-	$Q install -m 0755 -d							~/MPR121/debian-template/MPR121/usr/include
-	$Q install -m 0644 $(HEADERS)						~/MPR121/debian-template/MPR121/usr/include
-	$Q echo "[Install Dynamic Lib: deb]"
-	install -m 0755 -d							~/MPR121/debian-template/MPR121/usr/lib
-	install -m 0755 libMPR121.so.$(VERSION)				~/MPR121/debian-template/MPR121/usr/lib/libMPR121.so.$(VERSION)
-	ln -sf ~/MPR121/debian-template/MPR121/usr/lib/libMPR121.so.$(VERSION)	~/MPR121/debian-template/MPR121/usr/lib/libMPR121.so
 
 .PHONY:	uninstall
 uninstall:
