@@ -36,10 +36,11 @@
  *******************************************************************************/
 
 extern "C" {
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
-#include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
+  #include <inttypes.h>
+  #include <stdio.h>
+  #include <sys/stat.h>
 }
 
 #include "MPR121.h"
@@ -646,37 +647,45 @@ void MPR121_t::setSamplePeriod(mpr121_sample_interval_t period){
 
 void MPR121_t::enableRepeatedStarts(){
 
-  // modifies /sys/module/i2c_bcm2708/parameters/combined to contain "Y"
-  // (strangely by writing a 1 to it) - but only if it currently contains
-  // an "N" (I'm not sure if it really exists on the filesystem, so better
-  // to avoid potentially needless writes)
+  // only required for pre-May 2017 Raspbian - stat test checks 
+  // for the appropriate device file before getting deep into things
+
+  // modifies /sys/module/i2c_bcm2708/parameters/combined (if it exists) 
+  // to contain "Y" (strangely by writing a 1 to it) - but only if it 
+  // currently contains an "N"
 
   // this enables repeated start behaviour on the I2C bus, which the MPR121
   // requires
 
-  FILE *fp;
-  char buffer[1024]; // way bigger than required, but avoids overflow
   char path[] = "/sys/module/i2c_bcm2708/parameters/combined";
-  char command[1024];
-  // this is a shell one-liner to output a 1 (which becomes a Y) to the parameter file
+  struct stat stat_buffer;   
+
+  if(stat (path, &stat_buffer) != 0){
+    // if the device file doesn't exist, we're using the newer I2C driver
+    // and don't need to explicitly enable repeated starts
+    return; 
+  }
+
+  FILE *fp;
+  char read_buffer[8]; // way bigger than required, but avoids overflow
+  char command[128]; // way bigger than required, but avoids overflow
+  // this is a shell one-liner to output a 1 (which becomes a Y) to the device file
   sprintf(command, "%s%s%s", "echo -n 1 | sudo tee ", path, " > /dev/null");
 
-  // open the parameter file
+  // open the device file
   fp = fopen(path, "r");
   if (fp == NULL) {
     printf("%s%s%s\n","Failed to open ", path, " - communication with MPR121 may not work" );
   } else {
     // if we can read it, pull it into a buffer
-    fgets(buffer, sizeof(buffer)-1, fp);
+    fgets(read_buffer, sizeof(read_buffer)-1, fp);
+    fclose(fp);
+    if (strstr(read_buffer, "N") != NULL) {
+      // if we find an N, we should change it to a Y to enable repeated starts
+      system(command);
+    }
   }
 
-  // tidy up
-  fclose(fp);
-
-  if (strstr(buffer, "N") != NULL) {
-    // if we find an N, we should change it to a Y to enable repeated starts
-    system(command);
-  }
 }
 
 MPR121_t MPR121 = MPR121_t();
