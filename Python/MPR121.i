@@ -1,6 +1,8 @@
 %module MPR121
 
+%include "stdint.i"
 /* rename functions into snake_case */
+%feature("autodoc", "1");
 %rename(get_error) getError;
 %rename(clear_error) clearError;
 %rename(touch_status_changed) touchStatusChanged;
@@ -30,6 +32,7 @@
 %rename(digital_toggle) digitalToggle;
 %rename(digital_read) digitalRead;
 %rename(analog_write) analogWrite;
+%rename(set_calibration_lock) setCalibrationLock;
 %rename(_set_sample_period) setSamplePeriod; /* internal, we overwrite this ourselves to work around CPP enums */
 
 %{

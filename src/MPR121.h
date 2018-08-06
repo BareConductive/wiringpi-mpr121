@@ -38,6 +38,7 @@
 #ifndef MPR121_H
 #define MPR121_H
 
+#include <stdint.h>
 #include "MPR121_defs.h"
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
@@ -50,61 +51,61 @@
 struct MPR121_settings_t
 {
   // touch and release thresholds
-  unsigned char TTHRESH;
-  unsigned char RTHRESH;
+  uint8_t TTHRESH;
+  uint8_t RTHRESH;
 
-  unsigned char INTERRUPT;
+  uint8_t INTERRUPT;
 
   // general electrode touch sense baseline filters
   // rising filter
-  unsigned char MHDR;
-  unsigned char NHDR;
-  unsigned char NCLR;
-  unsigned char FDLR;
+  uint8_t MHDR;
+  uint8_t NHDR;
+  uint8_t NCLR;
+  uint8_t FDLR;
 
   // falling filter
-  unsigned char MHDF;
-  unsigned char NHDF;
-  unsigned char NCLF;
-  unsigned char FDLF;
+  uint8_t MHDF;
+  uint8_t NHDF;
+  uint8_t NCLF;
+  uint8_t FDLF;
 
   // touched filter
-  unsigned char NHDT;
-  unsigned char NCLT;
-  unsigned char FDLT;
+  uint8_t NHDT;
+  uint8_t NCLT;
+  uint8_t FDLT;
 
   // proximity electrode touch sense baseline filters
   // rising filter
-  unsigned char MHDPROXR;
-  unsigned char NHDPROXR;
-  unsigned char NCLPROXR;
-  unsigned char FDLPROXR;
+  uint8_t MHDPROXR;
+  uint8_t NHDPROXR;
+  uint8_t NCLPROXR;
+  uint8_t FDLPROXR;
 
   // falling filter
-  unsigned char MHDPROXF;
-  unsigned char NHDPROXF;
-  unsigned char NCLPROXF;
-  unsigned char FDLPROXF;
+  uint8_t MHDPROXF;
+  uint8_t NHDPROXF;
+  uint8_t NCLPROXF;
+  uint8_t FDLPROXF;
 
   // touched filter
-  unsigned char NHDPROXT;
-  unsigned char NCLPROXT;
-  unsigned char FDLPROXT;
+  uint8_t NHDPROXT;
+  uint8_t NCLPROXT;
+  uint8_t FDLPROXT;
 
   // debounce settings
-  unsigned char DTR;
+  uint8_t DTR;
 
   // configuration registers
-  unsigned char AFE1;
-  unsigned char AFE2;
-  unsigned char ECR;
+  uint8_t AFE1;
+  uint8_t AFE2;
+  uint8_t ECR;
 
   // auto-configuration registers
-  unsigned char ACCR0;
-  unsigned char ACCR1;
-  unsigned char USL;
-  unsigned char LSL;
-  unsigned char TL;
+  uint8_t ACCR0;
+  uint8_t ACCR1;
+  uint8_t USL;
+  uint8_t LSL;
+  uint8_t TL;
 
   // default values in initialisation list
   MPR121_settings_t():
@@ -145,27 +146,50 @@ struct MPR121_settings_t
 
 };
 
-// GPIO pin function constants
-enum mpr121_pinf_t
-{
-  // I think that INPUT and OUTPUT are defined by Wiring Pi, so we borrow its definitions
-  //INPUT,		    // digital input
-  INPUT_PU,		// digital input with pullup
-  INPUT_PD,		// digital input with pulldown
-  //OUTPUT,		    // digital output (push-pull)
-  OUTPUT_HS,		// digital output, open collector (high side)
-  OUTPUT_LS		// digital output, open collector (low side)
-};
+// GPIO pin function defines
+
+  // Different Arduino libraries define a different set of the following 6
+  // constants. Here, we define all the remaining ones. To avoid colliding
+  // with the values defined for any pre-existing (or future) constants, we pick a
+  // suitably high number to start indexing from (0xE0)
+#ifndef INPUT  
+  #define INPUT 0xE0      // digital input
+#endif
+#ifndef INPUT_PULLUP
+  #define INPUT_PULLUP 0xE1        // digital input with pullup
+#endif
+#ifndef INPUT_PULLDOWN
+  #define INPUT_PULLDOWN 0xE2      // digital input with pulldown
+#endif
+#ifndef OUTPUT
+  #define OUTPUT 0xE3              // digital output (push-pull)
+#endif
+#ifndef OUTPUT_HIGHSIDE
+  #define OUTPUT_HIGHSIDE 0xE4     // digital output, open collector (high side)
+#endif
+#ifndef OUTPUT_LOWSIDE
+  #define OUTPUT_LOWSIDE 0xE5      // digital output, open collector (low side)
+#endif
+
 
 // "13th electrode" proximity modes
 // N.B. this does not relate to normal proximity detection
 // see http://cache.freescale.com/files/sensors/doc/app_note/AN3893.pdf
 enum mpr121_proxmode_t
 {
-  DISABLED,		// proximity mode disabled
+  PROX_DISABLED,		// proximity mode disabled
   PROX0_1,		// proximity mode for ELE0..ELE1
   PROX0_3,		// proximity mode for ELE0..ELE3
   PROX0_11		// proximity mode for ELE0..ELE11
+};
+
+// baseline calibration lock modes
+enum mpr121_cal_lock_t
+{
+  CAL_LOCK_ENABLED,       // baseline tracking enabled, no value change on run
+  CAL_LOCK_DISABLED,        // baseline tracking disabled
+  CAL_LOCK_ENABLED_5_BIT_COPY,  // baseline tracking enabled, load 5 MSB of filtered data on entering run mode
+  CAL_LOCK_ENABLED_10_BIT_COPY  // baseline tracking enabled, load 10 MSB of filtered data on entering run mode
 };
 
 // error codes
@@ -202,7 +226,7 @@ class MPR121_t
 
     // begin() must be called before using any other function
     // address is optional, default is 0x5C
-    bool begin(unsigned char address);
+    bool begin(uint8_t address);
     bool begin();
 
     // getError() returns an mpr121_error_t indicating the current
@@ -230,31 +254,31 @@ class MPR121_t
     void updateAll();
 
     // returns a boolean indicating the touch status of a given electrode
-    bool getTouchData(unsigned char electrode);
+    bool getTouchData(uint8_t electrode);
 
     // returns the number of touches currently detected
-    unsigned char getNumTouches();
+    uint8_t getNumTouches();
 
     // returns continous proximity or baseline data for a given electrode
-    int getFilteredData(unsigned char electrode);
-    int getBaselineData(unsigned char electrode);
+    int16_t getFilteredData(uint8_t electrode);
+    int16_t getBaselineData(uint8_t electrode);
 
     // returns boolean indicating whether a new touch or release has been
     // detected since the last time updateTouchData() was called
-    bool isNewTouch(unsigned char electrode);
-    bool isNewRelease(unsigned char electrode);
+    bool isNewTouch(uint8_t electrode);
+    bool isNewRelease(uint8_t electrode);
 
     // sets touch and release thresholds either for all electrodes, or
     // for a specfic electrode - higher values = less sensitive and
     // release threshold must ALWAYS be lower than touch threshold
-    void setTouchThreshold(unsigned char val);
-    void setTouchThreshold(unsigned char electrode, unsigned char val);
-    void setReleaseThreshold(unsigned char val);
-    void setReleaseThreshold(unsigned char electrode, unsigned char val);
+    void setTouchThreshold(uint8_t val);
+    void setTouchThreshold(uint8_t electrode, uint8_t val);
+    void setReleaseThreshold(uint8_t val);
+    void setReleaseThreshold(uint8_t electrode, uint8_t val);
 
     // returns the current touch or release threshold for a specified electrode
-    unsigned char getTouchThreshold(unsigned char electrode);
-    unsigned char getReleaseThreshold(unsigned char electrode);
+    uint8_t getTouchThreshold(uint8_t electrode);
+    uint8_t getReleaseThreshold(uint8_t electrode);
 
     // ------------------ ADVANCED FUNCTIONS ------------------
 
@@ -266,8 +290,8 @@ class MPR121_t
     // setRegister() and getRegister() manipulate registers on
     // the MPR121 directly, whilst correctly stopping and
     // restarting the MPR121 if necessary
-    void setRegister(unsigned char reg, unsigned char value);
-    unsigned char getRegister(unsigned char reg);
+    void setRegister(uint8_t reg, uint8_t value);
+    uint8_t getRegister(uint8_t reg);
 
     // stop() and run() take the MPR121 in and out of stop mode
     // which reduces current consumption to 3uA
@@ -288,7 +312,7 @@ class MPR121_t
     // set an internal flag when a touch event occurs - thus minimising
     // lost events if you are also reading other data types (filtered data,
     // baseline data)
-    void setInterruptPin(unsigned char pin);
+    void setInterruptPin(uint8_t pin);
 
     // set number of electrodes to use to generate virtual "13th"
     // proximity electrode
@@ -298,6 +322,20 @@ class MPR121_t
     // reading back continuous proximity data
     void setProxMode(mpr121_proxmode_t mode);
 
+    // set calibration lock mode for baseline tracking
+    // this can be useful to disable baseline tracking, set it to 
+    // current values (with 5 or 10 most significant bits copied across from
+    // current filtered values to baseline the next time run mode is entered) 
+    // or leave it enabled with its current values in place (and no copy-across
+    // when run mode is re-entered)
+    void setCalibrationLock(mpr121_cal_lock_t lock);
+    
+    // Set the number of enabled electrodes, from 0 (which implicitly enters 
+    // stop mode) up to 12. This allows for a reduction in power consumption
+    // when using fewer electrodes and faster update rates. Implementation is 
+    // similar to setNumDigPins below, butwith a different intent.
+    void setNumEnabledElectrodes(uint8_t numElectrodes);
+
     // Enables GPIO mode for up to 8 of the MPR121 electrodes
     // starts with electrode 11 - i.e. setNumDigPins(1) sets just
     // electrode 11 as GPIO, setNumDigPins(2) sets electrodes 11
@@ -306,51 +344,50 @@ class MPR121_t
     //
     // N.B. electrodes are 3.3V and WILL be damaged if driven by
     // a greater voltage
-    void setNumDigPins(unsigned char numPins);
+    void setNumDigPins(uint8_t numPins);
 
     // Sets pin mode for an electrode already set as GPIO by
     // setNumDigPins() - see section "GPIO pin function constants"
     // for details
-    void pinMode(unsigned char electrode, mpr121_pinf_t mode);
-    void pinMode(unsigned char electrode, int mode);
+    void pinMode(uint8_t electrode, int mode);
 
     // Similar to digitalWrite in Arduino for GPIO electrode
-    void digitalWrite(unsigned char electrode, unsigned char val);
+    void digitalWrite(uint8_t electrode, uint8_t val);
 
     // Toggles electrode set as GPIO output
-    void digitalToggle(unsigned char electrode);
+    void digitalToggle(uint8_t electrode);
 
     // Reads electrode set as GPIO input
-    bool digitalRead(unsigned char electrode);
+    bool digitalRead(uint8_t electrode);
 
     // Writes PWM value to electrode set as GPIO output - very limited
     // (4 bit, although input to function is 0..255 to match Arduino,
     // internally reduced to 4 bit) and broken on ELE9 and ELE10
     // see https://community.freescale.com/thread/305474
-    void analogWrite(unsigned char electrode, unsigned char val);
+    void analogWrite(uint8_t electrode, uint8_t val);
 
     // Sets the sample period of the MPR121 - the time between capacitive
     // readings. Higher values consume less power, but are less responsive.
     void setSamplePeriod(mpr121_sample_interval_t period);
 
-    // functions / variables internal to the MPR121_t class - you cannot access these exter a ly
+    // functions / variables internal to the MPR121_t class - you cannot access these externally
 
   private:
     // internal helper functions and variables
     // not exposed externally to the user
-    unsigned char address;
+    uint8_t address;
     MPR121_settings_t defaultSettings;
-    unsigned char ECR_backup; // so we can re-enable the correct number of electrodes
+    uint8_t ECR_backup; // so we can re-enable the correct number of electrodes
     // when recovering from stop mode
-    unsigned char error;
+    uint8_t error;
     bool running;
     int interruptPin;
 
-    int filteredData[13];
-    int baselineData[13];
-    unsigned int touchData;
-    unsigned int lastTouchData;
-    bool getLastTouchData(unsigned char electrode);
+    int16_t filteredData[13];
+    int16_t baselineData[13];
+    uint16_t touchData;
+    uint16_t lastTouchData;
+    bool getLastTouchData(uint8_t electrode);
     bool autoTouchStatusFlag;	// we use this to catch touch / release events that happen
     // during other update calls
     static bool wiringPiInited;

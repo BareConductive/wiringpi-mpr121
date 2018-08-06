@@ -1,4 +1,4 @@
-from MPR121 import MPR121_t, MPR121Error, MPR121SampleInterval
+from .MPR121 import MPR121_t, MPR121Error, MPR121SampleInterval
 from types import MethodType
 from math import ceil, log, pow
 
