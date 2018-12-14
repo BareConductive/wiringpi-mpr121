@@ -1,6 +1,6 @@
 .DS_Store
 ._*
-Python/*.cxx
+Python/*.c*
 Python/MPR121.py
 *.so*
 *.o
